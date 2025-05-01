@@ -1,0 +1,63 @@
+<!-- WAiiICode Generator (mobile-friendly, offline) -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<title>WAiiICode Generator</title>
+
+<!-- QR encoder & LZ-String compression -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+
+<style>
+  :root{color-scheme:dark}
+  body{background:#05051a;color:#eee;font-family:monospace;margin:0;padding:2rem 1rem;text-align:center}
+  textarea{width:100%;max-width:760px;height:13rem;margin:.8rem auto 1rem;display:block;
+           background:#111;border:1px solid #333;color:#eee;padding:.7rem}
+  #qr{margin-top:1.2rem;background:#fff;padding:1rem;display:inline-block}
+  button{background:#7F00FF;color:#fff;border:none;padding:.6rem 1.4rem;font-weight:bold;cursor:pointer}
+  label{display:inline-block;margin-top:.5rem;font-size:.9rem;cursor:pointer}
+</style>
+</head><body>
+
+<h1>🌀 WAiiICode Generator</h1>
+<p>Paste or drag-drop your scroll JSON. Tick <em>Compressed</em> for large payloads.</p>
+
+<textarea id="scrollInput">{\n  "pilot":"Ni1K",\n  "scroll":"WorldBuilder_Alpha",\n  "type":"BLDR",\n  "vrLink":"/world-builder/index.html",\n  "state":{"objects":[],"npcs":[]}\n}</textarea>
+
+<label><input type="checkbox" id="cmp"> Compressed (LZ-String)</label><br>
+<button onclick="gen()">Generate&nbsp;QR</button>
+
+<div id="qr"></div>
+
+<script>
+/* drag-drop paste */
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f) f.text().then(t=>scrollInput.value=t);
+});
+
+function gen(){
+  const raw=scrollInput.value.trim();
+  try{ JSON.parse(raw); }catch(e){ alert('❌ Invalid JSON'); return; }
+
+  const payload = (cmp.checked)
+    ? 'data:application/json+lz;base64,' + btoa(LZString.compressToUTF16(raw))
+    : 'data:application/json;base64,'   + btoa(unescape(encodeURIComponent(raw)));
+
+  const wrap=document.getElementById('qr');
+  wrap.innerHTML='';
+  new QRCode(wrap,{text:payload,width:256,height:256});
+
+  /* auto-download PNG */
+  setTimeout(()=>{
+    const img=wrap.querySelector('img');
+    const link=document.createElement('a');
+    link.download='waiiicode.png';
+    link.href=img.src;
+    link.click();
+  },400);
+}
+</script>
+
+</body></html>
