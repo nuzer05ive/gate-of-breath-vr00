@@ -1,24 +1,57 @@
+<!-- index.html: SpiralDeck Loader + QR Trigger (with Backup Button) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SpiralDeck</title>
+  <title>SpiralDeck Scroll Loader</title>
+  <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
   <style>
-    body { background:#000; color:#fff; font-family:sans-serif; text-align:center; }
-    a { color:#7F00FF; text-decoration:none; }
-    .card { margin:20px auto; padding:20px; border:1px solid #444; max-width:400px; }
+    body { background: #05051a; font-family: monospace; color: #eee; margin: 0; padding: 2em; }
+    input, pre, button { margin: 1em 0; }
+    #scrollViewer { white-space: pre-wrap; background: #111; padding: 1em; border: 1px solid #333; }
   </style>
 </head>
 <body>
-  <h1>SpiralDeck</h1>
-  <div class="card">
-    <h2>Default Scroll: MidEyeFusion</h2>
-    <p><a href="index.html">Open WAiiC0D3 Loader</a></p>
-    <p><a href="/gate-of-breath-vr0O0/index.html">Enter GateOfBreath VR</a></p>
-  </div>
-  <div class="card">
-    <h2>Browse Other Scrolls</h2>
-    <p>Upload a WAiiC0D3 QR to summon any scroll.</p>
-  </div>
+  <h1>🌀 WAiiC0D3 Scroll Loader</h1>
+  <p>Select a QR image to summon your scroll or tap the button to load the last scroll manually.</p>
+  <input type="file" id="qrUpload" accept="image/*">
+  <button id="backupLoader">🔁 Load Last Scroll</button>
+  <canvas id="qrCanvas" style="display:none;"></canvas>
+  <div id="scrollViewer">📜 Waiting for scroll...</div>
+
+  <script>
+    const uploadEl = document.getElementById('qrUpload');
+    const backupBtn = document.getElementById('backupLoader');
+
+    uploadEl.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.getElementById('qrCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const code = jsQR(ctx.getImageData(0, 0, img.width, img.height).data, img.width, img.height);
+        if (!code) return alert("Invalid QR");
+        const scrollKey = code.data.trim();
+        fetch("waiicode_registry.json")
+          .then(res => res.json())
+          .then(reg => {
+            const scroll = reg[scrollKey];
+            if (!scroll) return alert("Scroll not found.");
+            localStorage.setItem("currentScroll", JSON.stringify(scroll));
+            location.href = scroll.vrLink || "/trismegistus-crown/index.html";
+          });
+      };
+    });
+
+    backupBtn.addEventListener('click', () => {
+      const scroll = JSON.parse(localStorage.getItem("currentScroll"));
+      if (!scroll || !scroll.vrLink) return alert("No scroll loaded yet.");
+      location.href = scroll.vrLink;
+    });
+  </script>
 </body>
 </html>
