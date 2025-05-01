@@ -1,49 +1,41 @@
-{<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Trismegistus Crown Scene</title>
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script>
-    AFRAME.registerComponent('spawn-guardians', {
-      init() {
-        const raw = localStorage.getItem('currentScroll');
-        if (!raw) {
-          location.href = "/index.html"; // fallback to loader
-          return;
-        }
-        const scroll = JSON.parse(raw);
-
-        if (scroll.audio){
-          const a = new Audio(scroll.audio.breathPhaseTrack);
-          a.loop = scroll.audio.loop; a.play();
-        }
-
-        (scroll.characters || []).forEach((c,i)=>{
-          const e = document.createElement('a-entity');
-          e.setAttribute('gltf-model', c.model);
-          e.setAttribute('position', c.position || `${-1+i} 0 -3`);
-          e.setAttribute('scale', '0.5 0.5 0.5');
-          const t = document.createElement('a-text');
-          t.setAttribute('value', `Greetings, ${c.name}`);
-          t.setAttribute('align', 'center');
-          t.setAttribute('position', '0 2 0');
-          e.appendChild(t);
-          this.el.appendChild(e);
-        });
-      }
+<!-- Trismegistus Crown Scene (dynamic) -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<title>Trismegistus Crown</title>
+<script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+<script>
+AFRAME.registerComponent('spawn-guardians',{
+  init(){
+    const raw=localStorage.getItem('currentScroll');
+    if(!raw){location.href='/index.html';return;}
+    const scroll=JSON.parse(raw);
+    if(scroll.audio && scroll.audio.breathPhaseTrack){
+      const a=new Audio(scroll.audio.breathPhaseTrack);
+      a.loop=scroll.audio.loop; a.play();
+    }
+    (scroll.characters||[]).forEach((c,i)=>{
+      const e=document.createElement('a-entity');
+      e.setAttribute('gltf-model', c.model || '#dummy');
+      e.setAttribute('scale','0.5 0.5 0.5');
+      e.setAttribute('position', c.position || `${-1+i} 0 -4`);
+      const t=document.createElement('a-text');
+      t.setAttribute('value',`Greetings, ${c.name}`);
+      t.setAttribute('align','center'); t.setAttribute('position','0 2 0');
+      e.appendChild(t);
+      e.addEventListener('mouseenter',()=>speechSynthesis.speak(new SpeechSynthesisUtterance(`I am ${c.name}`)));
+      this.el.appendChild(e);
     });
-  </script>
-</head>
-<body style="margin:0">
-  <a-scene background="color:#05051a" spawn-guardians>
-    <a-assets>
-      <a-asset-item id="dummy" src="https://cdn.aframe.io/examples/boilerplate/models/soldier/scene.gltf"></a-asset-item>
-    </a-assets>
-    <a-entity camera look-controls position="0 1.6 0">
-      <a-cursor fuse="true" fuse-timeout="1000"></a-cursor>
-    </a-entity>
-    <a-sky color="#000"></a-sky>
-  </a-scene>
-</body>
-</html>
+  }
+});
+</script>
+</head><body style="margin:0">
+<a-scene background="color:#05051a" spawn-guardians>
+  <a-assets>
+    <a-asset-item id="dummy" src="https://cdn.aframe.io/examples/boilerplate/models/soldier/scene.gltf"></a-asset-item>
+  </a-assets>
+  <a-entity camera look-controls position="0 1.6 0">
+    <a-cursor fuse-timeout="1000"></a-cursor>
+  </a-entity>
+  <a-sky color="#000"></a-sky>
+</a-scene>
+</body></html>
