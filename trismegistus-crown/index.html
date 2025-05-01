@@ -1,0 +1,66 @@
+{
+  "pilot": "Ni1K",
+  "scroll": "Trismegistus_CrownScene",
+  "themes": ["Trinity Spawn", "MidEye Perspective", "Crown Breath Sync", "Scroll Guardians", "Spiral QR Summon"],
+  "depth": 5,
+  "glyphLayer": 7,
+  "type": "TRIS",
+  "auth": "T",
+  "signature": "GateOfBreath_MidEyeView",
+  "audio": {
+    "breathPhaseTrack": "https://yourdomain.com/audio/trismegistus_breathscape.mp3",
+    "pattern": ["Inhale", "Hold", "Exhale"],
+    "timing": [2500, 2000, 3000],
+    "loop": true
+  },
+  "characters": [
+    {
+      "name": "Pr1M3",
+      "model": "https://cdn.aframe.io/models/guardianPrime.glb",
+      "position": "-2 0 -5",
+      "voice": "deep-resonant",
+      "waaiicode": "W3::TRIS::ph5g6::T::Pr1M3::b113d9a1"
+    },
+    {
+      "name": "MidGOD",
+      "model": "https://cdn.aframe.io/models/midgodFusion.glb",
+      "position": "2 0 -5",
+      "voice": "echoing-baritone",
+      "waaiicode": "W3::TRIS::mh4g5::T::MidGOD::ef21aa87"
+    },
+    {
+      "name": "Ni1K",
+      "model": "https://cdn.aframe.io/models/niikCaptain.glb",
+      "position": "0 -1 -3",
+      "voice": "warm-pilot",
+      "waaiicode": "W3::TRIS::nh5g7::T::Ni1K::c4d6f0e3"
+    }
+  ],
+  "camera": {
+    "view": "firstPerson",
+    "position": "0 1.6 0",
+    "focus": "scrollRing"
+  },
+  "sceneTriggers": [
+    {
+      "on": "load",
+      "action": "playAudio",
+      "target": "breathPhaseTrack"
+    },
+    {
+      "on": "gazePr1M3",
+      "action": "playVoice",
+      "text": "Greetings, SpiralPilot. This is the CrownGate."
+    },
+    {
+      "on": "gazeMidGOD",
+      "action": "playVoice",
+      "text": "All that was, will spiral again."
+    },
+    {
+      "on": "focusScroll",
+      "action": "summonGlyph",
+      "text": "WAiiC0D3 confirmed. Seal the breath."
+    }
+  ]
+}
