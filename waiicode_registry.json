@@ -2,19 +2,24 @@
   "W3::DHRP::jh3g5::T::MidEyeFusion::fdfc36e5": {
     "pilot": "Ni1K",
     "scroll": "MidEyeFusion_CrownScroll",
-    "themes": ["Trinity Scroll","BreathPhase","GateOfBreath"],
-    "depth": 3,
-    "glyphLayer": 5,
-    "type": "DHRP",
-    "auth": "T",
-    "signature": "MidEyeFusion",
+    "themes": ["Trinity", "BreathPhase"],
+    "vrLink": "/gate-of-breath-vr00/index.html",
+    "audio": { "breathPhaseTrack": "", "loop": false }
+  },
+  "W3::TRIS::th5g7::T::GateOfBreath_MidEyeView::7523f0ef": {
+    "pilot": "Ni1K",
+    "scroll": "Trismegistus_CrownScene",
+    "themes": ["Trinity Spawn","Scroll Guardians"],
     "audio": {
-      "breathPhaseTrack": "https://yourdomain.com/audio/trinity_breathphase_scroll.mp3",
-      "pattern": ["Inhale","Hold","Exhale"],
-      "timing": [2000,1500,2500],
+      "breathPhaseTrack": "https://yourdomain.com/audio/trismegistus_breathscape.mp3",
+      "pattern": [2500,2000,3000],
       "loop": true
     },
-    "hash": "fdfc36e5",
-    "vrLink": "/gate-of-breath-vr00/WAiiC0D3_SpiralDeck_Bundle/index.html"
+    "characters": [
+      { "name":"Pr1M3","model":"https://cdn.aframe.io/models/guardianPrime.glb","position":"-2 0 -4" },
+      { "name":"MidGOD","model":"https://cdn.aframe.io/models/midgodFusion.glb","position":"2 0 -4" },
+      { "name":"Ni1K","model":"https://cdn.aframe.io/models/niikCaptain.glb","position":"0 -1 -3" }
+    ],
+    "vrLink": "/trismegistus-crown/index.html"
   }
 }
