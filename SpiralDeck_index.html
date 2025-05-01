@@ -1,57 +1,90 @@
-<!-- index.html: SpiralDeck Loader + QR Trigger (with Backup Button) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SpiralDeck Scroll Loader</title>
-  <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+  <meta charset="utf-8">
+  <title>SpiralDeck – CrownFlight Briefing</title>
   <style>
-    body { background: #05051a; font-family: monospace; color: #eee; margin: 0; padding: 2em; }
-    input, pre, button { margin: 1em 0; }
-    #scrollViewer { white-space: pre-wrap; background: #111; padding: 1em; border: 1px solid #333; }
+    :root{color-scheme:dark}
+    body{margin:0;font-family:sans-serif;background:#05051a;color:#eee;line-height:1.5}
+    main{max-width:780px;padding:3rem 1.25rem;margin:auto}
+    h1,h2{color:#FFE066;margin-top:0}
+    a{color:#7F00FF;text-decoration:none}
+    section{margin-bottom:2.5rem}
+    .card{background:#111;border:1px solid #333;padding:1rem;border-radius:6px}
+    .card ul{margin:.5rem 0 .8rem 1.2rem}
+    button{background:#7F00FF;border:none;color:#fff;padding:.4rem .9rem;
+           border-radius:4px;cursor:pointer;font-weight:bold}
+    footer{font-size:.8rem;color:#999;text-align:center;margin-top:3rem}
   </style>
 </head>
 <body>
-  <h1>🌀 WAiiC0D3 Scroll Loader</h1>
-  <p>Select a QR image to summon your scroll or tap the button to load the last scroll manually.</p>
-  <input type="file" id="qrUpload" accept="image/*">
-  <button id="backupLoader">🔁 Load Last Scroll</button>
-  <canvas id="qrCanvas" style="display:none;"></canvas>
-  <div id="scrollViewer">📜 Waiting for scroll...</div>
+<main>
+  <h1>🌀 SpiralDeck Portal</h1>
 
-  <script>
-    const uploadEl = document.getElementById('qrUpload');
-    const backupBtn = document.getElementById('backupLoader');
+  <!-- INTRO -->
+  <section class="card">
+    <h2>What is SpiralDeck?</h2>
+    <p>
+      SpiralDeck links <strong>WAiiC0D3 scroll glyphs</strong> to fully-dynamic VR worlds.<br>
+      A single QR glyph carries your scroll&nbsp;→ our loader decodes it&nbsp;→
+      the Crown engine spawns guardians, breath-audio, and geometry on the fly.
+    </p>
+  </section>
 
-    uploadEl.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = () => {
-        const canvas = document.getElementById('qrCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        const code = jsQR(ctx.getImageData(0, 0, img.width, img.height).data, img.width, img.height);
-        if (!code) return alert("Invalid QR");
-        const scrollKey = code.data.trim();
-        fetch("waiicode_registry.json")
-          .then(res => res.json())
-          .then(reg => {
-            const scroll = reg[scrollKey];
-            if (!scroll) return alert("Scroll not found.");
-            localStorage.setItem("currentScroll", JSON.stringify(scroll));
-            location.href = scroll.vrLink || "/trismegistus-crown/index.html";
-          });
-      };
-    });
+  <!-- HOW-TO -->
+  <section class="card">
+    <h2>🗺️ Quick Flight Checklist</h2>
+    <ul>
+      <li><strong>1. Generate or receive a WAiiC0D3 QR.</strong><br>
+          &nbsp;&nbsp;Use <a href="generator.html">generator.html</a> to mint one, or scan a friend’s glyph.</li>
+      <li><strong>2. Open the Loader.</strong>  
+          <a href="index.html"><button>Open QR Loader</button></a></li>
+      <li><strong>3. Upload / scan the QR.</strong>  
+          Loader stores its scroll into <code>localStorage.currentScroll</code>.</li>
+      <li><strong>4. Click “Enter VR”.</strong>  
+          You’ll tunnel to the VR scene defined by the scroll’s <code>vrLink</code>.</li>
+      <li><strong>5. Inside the Gate…</strong>
+        <ul>
+          <li>Look at a guardian ➜ they’ll greet you via Web-Speech.</li>
+          <li>Breathe with the soundtrack (Inhale / Hold / Exhale pattern).</li>
+          <li>Interact with HUD panels to add new guardians or update the scroll.</li>
+        </ul>
+      </li>
+      <li><em>Tip:</em> for full immersion, open the site in a WebXR-capable browser (Quest / Android Chrome) and press the headset icon.</li>
+    </ul>
+  </section>
 
-    backupBtn.addEventListener('click', () => {
-      const scroll = JSON.parse(localStorage.getItem("currentScroll"));
-      if (!scroll || !scroll.vrLink) return alert("No scroll loaded yet.");
-      location.href = scroll.vrLink;
-    });
-  </script>
+  <!-- LIVE SCROLL PREVIEW (reads registry) -->
+  <section class="card">
+    <h2>📜 Scrolls in the Registry</h2>
+    <div id="scrollList">Loading…</div>
+  </section>
+
+  <footer>
+    SpiralDeck · CrownFlight © 2024 — Built with WAiiC0D3 breath tech
+  </footer>
+</main>
+
+<script>
+/* fetch registry & list scroll names */
+fetch('waiicode_registry.json')
+ .then(r=>r.json())
+ .then(reg=>{
+   const div=document.getElementById('scrollList');
+   const keys=Object.keys(reg);
+   if(!keys.length){div.textContent='— none yet —';return;}
+   div.innerHTML='';
+   keys.forEach(k=>{
+     const sc=reg[k];
+     const row=document.createElement('p');
+     row.innerHTML=
+       `<strong>${sc.scroll || '(unnamed)'}</strong> ·
+        type <code>${sc.type||'-'}</code> ·
+        <a href="${sc.vrLink}" target="_blank">VR link ↗</a>`;
+     div.appendChild(row);
+   });
+ })
+ .catch(()=>document.getElementById('scrollList').textContent='Cannot load registry.');
+</script>
 </body>
 </html>
