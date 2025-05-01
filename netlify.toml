@@ -1,8 +1,0 @@
-[build]
-  publish = "WAiiC0D3_SpiralDeck_Bundle"
-  command = ""
-
-[[redirects]]
-  from = "/*"
-  to = "/spiraldeck_index.html"
-  status = 200
