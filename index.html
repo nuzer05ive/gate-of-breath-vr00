@@ -1,95 +1,83 @@
-<!-- WAiiC0D3 Universal Loader  (registry  +  self-contained JSON) -->
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8">
-<title>WAiiC0D3 Loader</title>
+<!-- index.html: SpiralDeck Scroll Loader + Selector UI -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SpiralDeck Scroll Loader</title>
+  <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+  <style>
+    body { background: #05051a; font-family: monospace; color: #eee; margin: 0; padding: 2em; }
+    input, pre, button, select { margin: 1em 0; }
+    #scrollViewer { white-space: pre-wrap; background: #111; padding: 1em; border: 1px solid #333; }
+  </style>
+</head>
+<body>
+  <h1>🌀 WAiiC0D3 Scroll Loader</h1>
+  <p>Select a QR image to summon your scroll or choose one manually below.</p>
+  <input type="file" id="qrUpload" accept="image/*">
+  <button id="backupLoader">🔁 Load Last Scroll</button>
 
-<!-- QR decoder -->
-<script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
-<!-- Compression support for +lz payloads -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+  <label for="manualSelect">📜 Or pick a CrownScroll:</label>
+  <select id="manualSelect">
+    <option value="">-- Select Scroll --</option>
+    <option value="W3::TRIS::th5g7::T::GateOfBreath_MidEyeView::7523f0ef">MidEye Reflection</option>
+    <option value="W3::SCRB::sh3g3::T::RuneMemory::aa667799">Rune Memory</option>
+    <option value="W3::BLDR::bh5g5::T::HingeBridge::cc778899">Hinge Bridge</option>
+    <option value="W3::MIRR::mh5g2::T::ReflectionFork::ee441199">Reflection Fork</option>
+  </select>
 
-<style>
-  body{background:#05051a;color:#eee;font-family:monospace;text-align:center;padding:2em;margin:0}
-  #qrCanvas{display:none}
-  pre{white-space:pre-wrap;background:#111;padding:1em;border:1px solid #333;margin-top:1em;max-width:780px;margin-inline:auto}
-  button{background:#7F00FF;color:#fff;border:none;padding:.6em 1.4em;font-weight:bold;cursor:pointer;margin-top:1.2em;display:none}
-  a{color:#7F00FF}
-</style>
-</head><body>
+  <canvas id="qrCanvas" style="display:none;"></canvas>
+  <div id="scrollViewer">📜 Waiting for scroll...</div>
 
-<h1>🌀 WAiiC0D3 Loader</h1>
-<p>Select a QR image or <em>drag &amp; drop</em> it anywhere on the page.</p>
-<input type="file" id="qrInput" accept="image/*"><br>
-<canvas id="qrCanvas"></canvas>
-<pre id="out">Awaiting QR upload…</pre>
-<button id="enterVR">Enter VR</button><br>
-<p><a href="SpiralDeck_index.html">← back to SpiralDeck</a></p>
+  <script>
+    const uploadEl = document.getElementById('qrUpload');
+    const backupBtn = document.getElementById('backupLoader');
+    const selectEl = document.getElementById('manualSelect');
 
-<script>
-const input   = document.getElementById('qrInput');
-const canvas  = document.getElementById('qrCanvas');
-const ctx     = canvas.getContext('2d');
-const out     = document.getElementById('out');
-const enterVR = document.getElementById('enterVR');
+    uploadEl.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.getElementById('qrCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const code = jsQR(ctx.getImageData(0, 0, img.width, img.height).data, img.width, img.height);
+        if (!code) return alert("Invalid QR");
 
-/* Drag-drop support */
-document.addEventListener('dragover',e=>e.preventDefault());
-document.addEventListener('drop',e=>{
-  e.preventDefault();
-  const f=e.dataTransfer.files[0];
-  if(f) handleFile(f);
-});
-input.addEventListener('change',e=>handleFile(e.target.files[0]));
+        loadScroll(code.data.trim());
+      };
+    });
 
-/* Core logic */
-function handleFile(file){
-  const img=new Image();
-  img.src=URL.createObjectURL(file);
-  img.onload=()=>{
-    canvas.width=img.width; canvas.height=img.height;
-    ctx.drawImage(img,0,0);
-    const qr=jsQR(ctx.getImageData(0,0,canvas.width,canvas.height).data,canvas.width,canvas.height);
-    if(!qr){alert('QR scan failed.');return;}
-    processPayload(qr.data.trim());
-  };
-}
+    backupBtn.addEventListener('click', () => {
+      const scroll = JSON.parse(localStorage.getItem("currentScroll"));
+      if (!scroll || !scroll.vrLink) return alert("No scroll loaded yet.");
+      location.href = scroll.signature === "GateOfBreath_MidEyeView"
+        ? "/mideye-reflection-scene.html"
+        : scroll.vrLink;
+    });
 
-function processPayload(payload){
-  /* Case 1: self-contained JSON (raw or +lz) */
-  if(payload.startsWith('data:application/json')){
-    try{
-      let json;
-      if(payload.includes('+lz;base64,')){
-        const base64 = payload.split(',')[1];
-        json = LZString.decompressFromUTF16(atob(base64));
-      }else{
-        const base64 = payload.split(',')[1];
-        json = decodeURIComponent(escape(atob(base64)));
-      }
-      out.textContent=json;
-      localStorage.setItem('currentScroll',json);
-      const scObj=JSON.parse(json);
-      enableVR(scObj.vrLink);
-      return;
-    }catch(e){alert('Self-contained decode error: '+e);return;}
-  }
+    selectEl.addEventListener('change', () => {
+      const scrollKey = selectEl.value;
+      if (scrollKey) loadScroll(scrollKey);
+    });
 
-  /* Case 2: registry key */
-  fetch('waiicode_registry.json')
-    .then(r=>r.json())
-    .then(reg=>{
-      const scroll=reg[payload];
-      if(!scroll){alert('Scroll not found in registry');return;}
-      out.textContent=JSON.stringify(scroll,null,2);
-      localStorage.setItem('currentScroll',JSON.stringify(scroll));
-      enableVR(scroll.vrLink);
-    })
-    .catch(()=>alert('Failed to load registry'));
-}
-
-function enableVR(vrLink){
-  enterVR.style.display='inline-block';
-  enterVR.onclick=()=>location.href=vrLink;
-}
-</script>
-</body></html>
+    function loadScroll(scrollKey) {
+      fetch("waiicode_registry.json")
+        .then(res => res.json())
+        .then(reg => {
+          const scroll = reg[scrollKey];
+          if (!scroll) return alert("Scroll not found.");
+          localStorage.setItem("currentScroll", JSON.stringify(scroll));
+          if (scroll.signature === "GateOfBreath_MidEyeView") {
+            location.href = "/mideye-reflection-scene.html";
+          } else {
+            location.href = scroll.vrLink || "/trismegistus-crown/index.html";
+          }
+        });
+    }
+  </script>
+</body>
+</html>
