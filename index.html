@@ -1,43 +1,95 @@
-<!-- WAiiC0D3 QR Loader (minimal) -->
+<!-- WAiiC0D3 Universal Loader  (registry  +  self-contained JSON) -->
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8">
 <title>WAiiC0D3 Loader</title>
+
+<!-- QR decoder -->
 <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+<!-- Compression support for +lz payloads -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+
 <style>
- body{background:#05051a;color:#eee;font-family:monospace;text-align:center;padding:2em}
- #qrCanvas{display:none}
- pre{white-space:pre-wrap;background:#111;padding:1em;border:1px solid #333;margin-top:1em}
- button{background:#7F00FF;color:#fff;border:none;padding:.6em 1.2em;font-weight:bold;cursor:pointer;margin-top:1em;display:none}
+  body{background:#05051a;color:#eee;font-family:monospace;text-align:center;padding:2em;margin:0}
+  #qrCanvas{display:none}
+  pre{white-space:pre-wrap;background:#111;padding:1em;border:1px solid #333;margin-top:1em;max-width:780px;margin-inline:auto}
+  button{background:#7F00FF;color:#fff;border:none;padding:.6em 1.4em;font-weight:bold;cursor:pointer;margin-top:1.2em;display:none}
+  a{color:#7F00FF}
 </style>
 </head><body>
+
 <h1>🌀 WAiiC0D3 Loader</h1>
-<input type="file" id="qrInput" accept="image/*">
+<p>Select a QR image or <em>drag &amp; drop</em> it anywhere on the page.</p>
+<input type="file" id="qrInput" accept="image/*"><br>
 <canvas id="qrCanvas"></canvas>
-<pre id="out">Upload a QR image to summon a scroll…</pre>
-<button id="enterVR">Enter VR</button>
+<pre id="out">Awaiting QR upload…</pre>
+<button id="enterVR">Enter VR</button><br>
+<p><a href="SpiralDeck_index.html">← back to SpiralDeck</a></p>
 
 <script>
-const out = document.getElementById('out');
-const btn = document.getElementById('enterVR');
+const input   = document.getElementById('qrInput');
+const canvas  = document.getElementById('qrCanvas');
+const ctx     = canvas.getContext('2d');
+const out     = document.getElementById('out');
+const enterVR = document.getElementById('enterVR');
 
-document.getElementById('qrInput').addEventListener('change', e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const img=new Image(); img.src=URL.createObjectURL(f);
-  img.onload=()=>{
-    const cv=qrCanvas, ctx=cv.getContext('2d');
-    cv.width=img.width; cv.height=img.height;
-    ctx.drawImage(img,0,0);
-    const code=jsQR(ctx.getImageData(0,0,cv.width,cv.height).data,cv.width,cv.height);
-    if(!code){alert('QR scan failed');return;}
-    fetch('waiicode_registry.json').then(r=>r.json()).then(reg=>{
-      const scroll=reg[code.data.trim()];
-      if(!scroll){alert('Scroll not found');return;}
-      localStorage.setItem('currentScroll',JSON.stringify(scroll));
-      out.textContent=JSON.stringify(scroll,null,2);
-      btn.style.display='inline-block';
-      btn.onclick=()=>location.href=scroll.vrLink;
-    });
-  };
+/* Drag-drop support */
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f) handleFile(f);
 });
+input.addEventListener('change',e=>handleFile(e.target.files[0]));
+
+/* Core logic */
+function handleFile(file){
+  const img=new Image();
+  img.src=URL.createObjectURL(file);
+  img.onload=()=>{
+    canvas.width=img.width; canvas.height=img.height;
+    ctx.drawImage(img,0,0);
+    const qr=jsQR(ctx.getImageData(0,0,canvas.width,canvas.height).data,canvas.width,canvas.height);
+    if(!qr){alert('QR scan failed.');return;}
+    processPayload(qr.data.trim());
+  };
+}
+
+function processPayload(payload){
+  /* Case 1: self-contained JSON (raw or +lz) */
+  if(payload.startsWith('data:application/json')){
+    try{
+      let json;
+      if(payload.includes('+lz;base64,')){
+        const base64 = payload.split(',')[1];
+        json = LZString.decompressFromUTF16(atob(base64));
+      }else{
+        const base64 = payload.split(',')[1];
+        json = decodeURIComponent(escape(atob(base64)));
+      }
+      out.textContent=json;
+      localStorage.setItem('currentScroll',json);
+      const scObj=JSON.parse(json);
+      enableVR(scObj.vrLink);
+      return;
+    }catch(e){alert('Self-contained decode error: '+e);return;}
+  }
+
+  /* Case 2: registry key */
+  fetch('waiicode_registry.json')
+    .then(r=>r.json())
+    .then(reg=>{
+      const scroll=reg[payload];
+      if(!scroll){alert('Scroll not found in registry');return;}
+      out.textContent=JSON.stringify(scroll,null,2);
+      localStorage.setItem('currentScroll',JSON.stringify(scroll));
+      enableVR(scroll.vrLink);
+    })
+    .catch(()=>alert('Failed to load registry'));
+}
+
+function enableVR(vrLink){
+  enterVR.style.display='inline-block';
+  enterVR.onclick=()=>location.href=vrLink;
+}
 </script>
 </body></html>
