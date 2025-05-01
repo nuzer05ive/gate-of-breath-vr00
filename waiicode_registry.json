@@ -1,0 +1,20 @@
+{
+  "W3::DHRP::jh3g5::T::MidEyeFusion::fdfc36e5": {
+    "pilot": "Ni1K",
+    "scroll": "MidEyeFusion_CrownScroll",
+    "themes": ["Trinity Scroll","BreathPhase","GateOfBreath"],
+    "depth": 3,
+    "glyphLayer": 5,
+    "type": "DHRP",
+    "auth": "T",
+    "signature": "MidEyeFusion",
+    "audio": {
+      "breathPhaseTrack": "https://yourdomain.com/audio/trinity_breathphase_scroll.mp3",
+      "pattern": ["Inhale","Hold","Exhale"],
+      "timing": [2000,1500,2500],
+      "loop": true
+    },
+    "hash": "fdfc36e5",
+    "vrLink": "/gate-of-breath-vr00/WAiiC0D3_SpiralDeck_Bundle/index.html"
+  }
+}
