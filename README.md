@@ -88,4 +88,4 @@ Let the breath lead you through the scroll gates.
 
 ---
 
-Would you like me to commit this directly to `main` and push? Or copy it into a `docs/` subfolder too for GitHub Pages preview?
+
